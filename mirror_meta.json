@@ -1,4 +1,33 @@
 {
-  "generated": "2026-06-30T00:27:06.383504+00:00",
-  "packages": {}
+  "generated": "2026-06-30T00:33:30.772215+00:00",
+  "packages": {
+    "click": [
+      {
+        "filename": "click-8.4.2-py3-none-any.whl",
+        "sha256": "e6f9f66136c816745b9d65817da91d61d957fb16e02e4dcd0552553c5a197b76",
+        "size": 119243
+      }
+    ],
+    "requests": [
+      {
+        "filename": "requests-2.34.2-py3-none-any.whl",
+        "sha256": "2a0d60c172f83ac6ab31e4554906c0f3b3588d37b5cb939b1c061f4907e278e0",
+        "size": 73075
+      }
+    ],
+    "rich": [
+      {
+        "filename": "rich-15.0.0-py3-none-any.whl",
+        "sha256": "33bd4ef74232fb73fe9279a257718407f169c09b78a87ad3d296f548e27de0bb",
+        "size": 310654
+      }
+    ],
+    "tqdm": [
+      {
+        "filename": "tqdm-4.68.3-py3-none-any.whl",
+        "sha256": "39832cc2def2789a6f29df83f172db7416cea70052c0907a57801c5f2fdccb03",
+        "size": 78337
+      }
+    ]
+  }
 }
