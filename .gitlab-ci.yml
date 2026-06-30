@@ -1,0 +1,16 @@
+pages:
+  stage: deploy
+  image: python:3.11-slim
+  script:
+    - python scripts/build_index.py
+    - python scripts/build_root.py
+    - mkdir -p public
+    - cp -r simple public/simple
+    - cp index.html public/index.html
+    - cp mirror_meta.json public/mirror_meta.json
+    - cp -r packages public/packages
+  artifacts:
+    paths:
+      - public
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
