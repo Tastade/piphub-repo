@@ -1,0 +1,106 @@
+name: Weekly Auto-Update Packages
+
+on:
+  schedule:
+    # Каждое воскресенье в 03:00 UTC
+    - cron: '0 3 * * 0'
+  workflow_dispatch:  # позволяет запустить вручную из вкладки Actions
+
+permissions:
+  contents: write
+
+jobs:
+  update-packages:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Update all packages to latest versions
+        run: |
+          python3 << 'PYEOF'
+          import json
+          import re
+          import subprocess
+          import urllib.request
+          from pathlib import Path
+
+          packages_dir = Path("packages")
+          if not packages_dir.exists():
+              print("packages/ not found, skipping")
+              exit(0)
+
+          # Собираем текущие пакеты и версии
+          pkg_versions = {}
+          for f in packages_dir.iterdir():
+              if f.suffix == ".whl":
+                  parts = f.stem.split("-")
+                  if len(parts) >= 2:
+                      pkg_versions[parts[0].lower()] = parts[1]
+
+          print(f"Найдено {len(pkg_versions)} пакетов для проверки")
+
+          def get_latest_version(pkg):
+              try:
+                  req = urllib.request.Request(
+                      f"https://pypi.org/pypi/{pkg}/json",
+                      headers={"User-Agent": "piphub-repo-ci/1.0"}
+                  )
+                  with urllib.request.urlopen(req, timeout=10) as r:
+                      data = json.loads(r.read().decode())
+                      return data["info"]["version"]
+              except Exception as e:
+                  print(f"  Ошибка проверки {pkg}: {e}")
+                  return None
+
+          updated_count = 0
+          for name, cur_ver in sorted(pkg_versions.items()):
+              latest = get_latest_version(name)
+              if latest and latest != cur_ver:
+                  print(f"  Обновляю {name}: {cur_ver} -> {latest}")
+                  # Удаляем старые файлы этого пакета
+                  for f in packages_dir.iterdir():
+                      if f.stem.lower().startswith(f"{name}-"):
+                          f.unlink()
+                  # Скачиваем новую версию
+                  subprocess.run([
+                      "pip", "download", name,
+                      "--dest", str(packages_dir),
+                      "--no-deps"
+                  ], check=False)
+                  updated_count += 1
+              else:
+                  print(f"  {name}: актуален ({cur_ver})")
+
+          print(f"\nВсего обновлено: {updated_count} пакетов")
+
+          # Сохраняем результат для следующего шага
+          Path("update_count.txt").write_text(str(updated_count))
+          PYEOF
+
+      - name: Build index
+        run: |
+          python scripts/build_index.py
+          python scripts/build_root.py
+
+      - name: Commit and push changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          UPDATE_COUNT=$(cat update_count.txt 2>/dev/null || echo "0")
+          rm -f update_count.txt
+
+          git add packages/ simple/ index.html mirror_meta.json
+          if git diff --staged --quiet; then
+            echo "Нет изменений, пропускаю коммит"
+          else
+            git commit -m "chore: weekly auto-update ($UPDATE_COUNT packages) [skip ci]"
+            git push
+          fi
