@@ -1,0 +1,70 @@
+name: Release piphub-repo CLI
+
+on:
+  push:
+    tags:
+      - 'v*'  # Срабатывает при пуше тега вида v2.5.0, v3.0.0 и т.д.
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install build tools
+        run: pip install build wheel setuptools
+
+      - name: Extract version from tag
+        id: version
+        run: echo "VERSION=${GITHUB_REF_NAME#v}" >> $GITHUB_OUTPUT
+
+      - name: Update version in setup.py
+        run: |
+          sed -i "s/version=\".*\"/version=\"${{ steps.version.outputs.VERSION }}\"/" piphub-repo-tool/setup.py
+
+      - name: Build wheel
+        run: |
+          cd piphub-repo-tool
+          python -m build --wheel --no-isolation
+          ls dist/
+
+      - name: Build sdist (source distribution)
+        run: |
+          cd piphub-repo-tool
+          python -m build --sdist --no-isolation
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: "piphub-repo v${{ steps.version.outputs.VERSION }}"
+          body: |
+            ## piphub-repo v${{ steps.version.outputs.VERSION }}
+
+            ### Установка
+            ```bash
+            pip install piphub-repo
+            piphub-repo use tastade
+            ```
+
+            ### Обновление через self-update
+            ```bash
+            piphub-repo self-update
+            ```
+
+            ### Обновление вручную
+            ```bash
+            pip install --upgrade piphub-repo
+            ```
+          files: |
+            piphub-repo-tool/dist/*.whl
+            piphub-repo-tool/dist/*.tar.gz
+          draft: false
+          prerelease: false

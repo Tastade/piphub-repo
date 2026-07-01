@@ -1,0 +1,13 @@
+Metadata-Version: 2.4
+Name: piphub-repo
+Version: 2.5.1
+Summary: CLI для управления pip-репозиториями в Termux
+Home-page: https://github.com/Tastade/piphub-repo
+Author: Tastade
+Requires-Python: >=3.8
+Requires-Dist: rich>=13.0
+Dynamic: author
+Dynamic: home-page
+Dynamic: requires-dist
+Dynamic: requires-python
+Dynamic: summary
