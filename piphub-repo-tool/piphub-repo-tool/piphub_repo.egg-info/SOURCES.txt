@@ -1,0 +1,9 @@
+README.md
+piphub_repo.py
+setup.py
+piphub_repo.egg-info/PKG-INFO
+piphub_repo.egg-info/SOURCES.txt
+piphub_repo.egg-info/dependency_links.txt
+piphub_repo.egg-info/entry_points.txt
+piphub_repo.egg-info/requires.txt
+piphub_repo.egg-info/top_level.txt
