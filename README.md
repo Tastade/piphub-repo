@@ -2,8 +2,6 @@
 
 Персональное зеркало pip-пакетов для **Termux**.
 
-🌐 **https://tastade.github.io/piphub-repo/**
-
 ---
 
 ## Быстрая установка
